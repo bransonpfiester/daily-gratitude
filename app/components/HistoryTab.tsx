@@ -13,12 +13,12 @@ export default function HistoryTab({ entries }: HistoryTabProps) {
   const sortedEntries = [...entries].sort((a, b) => b.date.localeCompare(a.date));
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString + 'T00:00:00');
+    const date = new Date(`${dateString}T00:00:00`);
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
@@ -26,81 +26,69 @@ export default function HistoryTab({ entries }: HistoryTabProps) {
     setExpandedId(expandedId === id ? null : id);
   };
 
-  if (entries.length === 0) {
+  const visibleEntries = sortedEntries.filter((entry) =>
+    Boolean(
+      entry.gratitude1.trim() ||
+        entry.gratitude2.trim() ||
+        entry.gratitude3.trim() ||
+        entry.intention.trim() ||
+        entry.affirmation.trim(),
+    ),
+  );
+
+  if (visibleEntries.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-gray-500 text-lg">No entries yet. Start by filling out today's gratitude!</p>
-        <p className="text-gray-400 mt-2">Your journey begins with a single entry 🌟</p>
+      <div className="rounded-2xl bg-white p-8 text-center shadow-sm">
+        <p className="text-lg text-gray-600">No entries yet. Fill out Today to begin.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      {sortedEntries.map((entry) => {
+      {visibleEntries.map((entry) => {
         const isExpanded = expandedId === entry.id;
-        const hasContent = entry.gratitude1 || entry.gratitude2 || entry.gratitude3 || entry.intention || entry.affirmation;
-
-        if (!hasContent) return null;
 
         return (
-          <div
+          <button
             key={entry.id}
-            className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+            className="w-full rounded-2xl bg-white p-5 text-left shadow-sm transition hover:shadow-md sm:p-6"
             onClick={() => toggleExpanded(entry.id)}
+            type="button"
           >
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {formatDate(entry.date)}
-                </h3>
-                {!isExpanded && (
-                  <div className="mt-2 text-gray-600">
-                    {entry.gratitude1 && (
-                      <p className="truncate">🙏 {entry.gratitude1}</p>
-                    )}
-                  </div>
-                )}
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900 sm:text-lg">{formatDate(entry.date)}</h3>
+                {!isExpanded && entry.gratitude1 && <p className="mt-2 line-clamp-1 text-gray-600">{entry.gratitude1}</p>}
               </div>
-              <svg
-                className={`w-6 h-6 text-gray-400 transition-transform ${isExpanded ? 'transform rotate-180' : ''}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
+              <span className={`text-gray-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`}>⌄</span>
             </div>
 
             {isExpanded && (
-              <div className="mt-4 space-y-4 animate-fadeIn">
-                {(entry.gratitude1 || entry.gratitude2 || entry.gratitude3) && (
-                  <div>
-                    <h4 className="font-medium text-gray-700 mb-2">🙏 Grateful for:</h4>
-                    <ul className="space-y-1 text-gray-600">
-                      {entry.gratitude1 && <li>• {entry.gratitude1}</li>}
-                      {entry.gratitude2 && <li>• {entry.gratitude2}</li>}
-                      {entry.gratitude3 && <li>• {entry.gratitude3}</li>}
-                    </ul>
-                  </div>
-                )}
+              <div className="mt-4 space-y-4 text-gray-700">
+                <div>
+                  <h4 className="mb-2 font-semibold">I am grateful for...</h4>
+                  <p>{entry.gratitude1 || ' '}</p>
+                  <p>{entry.gratitude2 || ' '}</p>
+                  <p>{entry.gratitude3 || ' '}</p>
+                </div>
 
                 {entry.intention && (
                   <div>
-                    <h4 className="font-medium text-gray-700 mb-2">✨ Intention:</h4>
-                    <p className="text-gray-600">{entry.intention}</p>
+                    <h4 className="mb-2 font-semibold">What would make today great?</h4>
+                    <p>{entry.intention}</p>
                   </div>
                 )}
 
                 {entry.affirmation && (
                   <div>
-                    <h4 className="font-medium text-gray-700 mb-2">💜 Affirmation:</h4>
-                    <p className="text-gray-600">{entry.affirmation}</p>
+                    <h4 className="mb-2 font-semibold">Daily affirmation</h4>
+                    <p>{entry.affirmation}</p>
                   </div>
                 )}
               </div>
             )}
-          </div>
+          </button>
         );
       })}
     </div>

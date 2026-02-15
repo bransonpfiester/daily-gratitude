@@ -1,87 +1,79 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import TodayTab from './components/TodayTab';
 import HistoryTab from './components/HistoryTab';
-import { GratitudeEntry, loadData, saveData, calculateStreak } from './lib/storage';
+import { GratitudeEntry, getTodayEntry, loadData, saveData, calculateStreak } from './lib/storage';
+
+function getInitialEntries(): GratitudeEntry[] {
+  if (typeof window === 'undefined') {
+    return [];
+  }
+  return loadData().entries;
+}
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'today' | 'history'>('today');
-  const [entries, setEntries] = useState<GratitudeEntry[]>([]);
-  const [currentStreak, setCurrentStreak] = useState(0);
+  const [entries, setEntries] = useState<GratitudeEntry[]>(getInitialEntries);
 
-  useEffect(() => {
-    const data = loadData();
-    setEntries(data.entries);
-    const streak = calculateStreak(data.entries);
-    setCurrentStreak(streak);
-  }, []);
+  const currentStreak = useMemo(() => calculateStreak(entries), [entries]);
+  const todayEntry = useMemo(() => getTodayEntry(entries), [entries]);
 
   const handleSaveEntry = (entry: GratitudeEntry) => {
-    const updatedEntries = [...entries.filter(e => e.date !== entry.date), entry];
+    const updatedEntries = [...entries.filter((savedEntry) => savedEntry.date !== entry.date), entry];
     setEntries(updatedEntries);
     saveData({ entries: updatedEntries });
-    const streak = calculateStreak(updatedEntries);
-    setCurrentStreak(streak);
   };
 
+  const todayDate = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  });
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-purple-100 to-lavender-100">
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        {/* Header */}
-        <header className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Daily Gratitude</h1>
-            <p className="text-gray-600 mt-1">
-              {new Date().toLocaleDateString('en-US', { 
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric'
-              })} ☀️
-            </p>
-          </div>
-          <div className="text-right">
-            <div className="text-4xl font-bold text-purple-600">{currentStreak}</div>
-            <div className="text-sm text-gray-600">day streak 🔥</div>
+    <main className="min-h-screen bg-[linear-gradient(135deg,#E9D5FF_0%,#FBE0FF_100%)] px-4 py-6 sm:px-6 sm:py-8">
+      <div className="mx-auto w-full max-w-3xl">
+        <header className="mb-6 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Gratitude Journal</h1>
+              <p className="mt-1 text-sm text-gray-600 sm:text-base">{todayDate}</p>
+            </div>
+            <div className="rounded-xl bg-purple-50 px-4 py-2 text-right">
+              <p className="text-2xl font-bold text-purple-700 sm:text-3xl">{currentStreak}</p>
+              <p className="text-xs font-medium uppercase tracking-wide text-purple-700 sm:text-sm">Day Streak</p>
+            </div>
           </div>
         </header>
 
-        {/* Navigation Tabs */}
-        <div className="flex border-b-2 border-gray-200 mb-6">
+        <nav className="mb-5 flex rounded-xl bg-white p-1 shadow-sm" aria-label="Journal navigation tabs">
           <button
             onClick={() => setActiveTab('today')}
-            className={`flex-1 py-3 font-medium text-lg transition-colors ${
-              activeTab === 'today'
-                ? 'text-purple-600 border-b-3 border-purple-600'
-                : 'text-gray-500 hover:text-gray-700'
+            className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition sm:text-base ${
+              activeTab === 'today' ? 'bg-purple-600 text-white' : 'text-gray-600 hover:bg-purple-50'
             }`}
-            style={activeTab === 'today' ? { borderBottom: '3px solid #9333ea' } : {}}
+            type="button"
           >
             Today
           </button>
           <button
             onClick={() => setActiveTab('history')}
-            className={`flex-1 py-3 font-medium text-lg transition-colors ${
-              activeTab === 'history'
-                ? 'text-purple-600 border-b-3 border-purple-600'
-                : 'text-gray-500 hover:text-gray-700'
+            className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition sm:text-base ${
+              activeTab === 'history' ? 'bg-purple-600 text-white' : 'text-gray-600 hover:bg-purple-50'
             }`}
-            style={activeTab === 'history' ? { borderBottom: '3px solid #9333ea' } : {}}
+            type="button"
           >
             History
           </button>
-        </div>
+        </nav>
 
-        {/* Tab Content */}
         {activeTab === 'today' ? (
-          <TodayTab 
-            entries={entries}
-            onSave={handleSaveEntry}
-          />
+          <TodayTab key={todayEntry?.id ?? 'today-empty'} todayEntry={todayEntry} onSave={handleSaveEntry} />
         ) : (
           <HistoryTab entries={entries} />
         )}
       </div>
-    </div>
+    </main>
   );
 }

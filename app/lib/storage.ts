@@ -16,26 +16,46 @@ export interface StorageData {
 
 const STORAGE_KEY = 'gratitude-journal-data';
 
+function getLocalDateKey(date: Date = new Date()): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function hasContent(entry: GratitudeEntry): boolean {
+  return Boolean(
+    entry.gratitude1.trim() ||
+      entry.gratitude2.trim() ||
+      entry.gratitude3.trim() ||
+      entry.intention.trim() ||
+      entry.affirmation.trim(),
+  );
+}
+
 export function loadData(): StorageData {
   if (typeof window === 'undefined') {
     return { entries: [] };
   }
-  
+
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      return JSON.parse(stored);
+      const parsed = JSON.parse(stored) as StorageData;
+      if (Array.isArray(parsed.entries)) {
+        return parsed;
+      }
     }
   } catch (error) {
     console.error('Error loading data:', error);
   }
-  
+
   return { entries: [] };
 }
 
 export function saveData(data: StorageData): void {
   if (typeof window === 'undefined') return;
-  
+
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch (error) {
@@ -44,51 +64,38 @@ export function saveData(data: StorageData): void {
 }
 
 export function getTodayEntry(entries: GratitudeEntry[]): GratitudeEntry | undefined {
-  const today = new Date().toISOString().split('T')[0];
-  return entries.find(e => e.date === today);
+  const today = getLocalDateKey();
+  return entries.find((entry) => entry.date === today);
 }
 
 export function calculateStreak(entries: GratitudeEntry[]): number {
-  if (entries.length === 0) return 0;
-  
-  const sortedDates = entries
-    .map(e => e.date)
-    .sort()
-    .reverse();
-  
-  const today = new Date().toISOString().split('T')[0];
+  const datedEntries = new Set(entries.filter(hasContent).map((entry) => entry.date));
+  if (datedEntries.size === 0) return 0;
+
   let streak = 0;
-  let currentDate = new Date(today);
-  
-  for (const entryDate of sortedDates) {
-    const checkDate = currentDate.toISOString().split('T')[0];
-    
-    if (entryDate === checkDate) {
-      streak++;
-      currentDate.setDate(currentDate.getDate() - 1);
-    } else if (streak === 0 && entryDate < today) {
-      // No entry today, but check yesterday
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-      if (entryDate === yesterday.toISOString().split('T')[0]) {
-        streak = 1;
-        currentDate = new Date(yesterday);
-        currentDate.setDate(currentDate.getDate() - 1);
-      } else {
-        break;
-      }
-    } else {
-      break;
+  const cursor = new Date();
+
+  while (datedEntries.has(getLocalDateKey(cursor))) {
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  // If there is no entry for today, start counting from yesterday.
+  if (streak === 0) {
+    cursor.setDate(cursor.getDate() - 1);
+    while (datedEntries.has(getLocalDateKey(cursor))) {
+      streak += 1;
+      cursor.setDate(cursor.getDate() - 1);
     }
   }
-  
+
   return streak;
 }
 
 export function createEntry(data: Partial<GratitudeEntry>): GratitudeEntry {
   const now = Date.now();
-  const today = new Date().toISOString().split('T')[0];
-  
+  const today = getLocalDateKey();
+
   return {
     id: data.id || `entry-${now}`,
     date: data.date || today,
