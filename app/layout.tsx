@@ -1,19 +1,15 @@
-import type { Metadata } from 'next'
-import './globals.css'
+import type { Metadata } from 'next';
+import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Daily Gratitude Journal',
-  description: 'Practice daily gratitude and build a positive mindset',
-}
+  title: 'Three Good Things',
+  description: 'Minimal gratitude journal',
+};
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className="antialiased">{children}</body>
+      <body>{children}</body>
     </html>
-  )
+  );
 }

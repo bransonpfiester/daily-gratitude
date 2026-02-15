@@ -1,110 +1,60 @@
-export interface GratitudeEntry {
-  id: string;
-  date: string; // YYYY-MM-DD format
-  gratitude1: string;
-  gratitude2: string;
-  gratitude3: string;
-  intention: string;
-  affirmation: string;
-  createdAt: number;
+export interface JournalEntry {
+  date: string;
+  items: [string, string, string];
   updatedAt: number;
 }
 
-export interface StorageData {
-  entries: GratitudeEntry[];
-}
+const STORAGE_KEY = 'three-good-things';
 
-const STORAGE_KEY = 'gratitude-journal-data';
-
-function getLocalDateKey(date: Date = new Date()): string {
+function toLocalDateKey(date: Date = new Date()): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
 
-function hasContent(entry: GratitudeEntry): boolean {
-  return Boolean(
-    entry.gratitude1.trim() ||
-      entry.gratitude2.trim() ||
-      entry.gratitude3.trim() ||
-      entry.intention.trim() ||
-      entry.affirmation.trim(),
-  );
+export function getTodayKey(): string {
+  return toLocalDateKey();
 }
 
-export function loadData(): StorageData {
+export function loadEntries(): Record<string, JournalEntry> {
   if (typeof window === 'undefined') {
-    return { entries: [] };
+    return {};
   }
 
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored) as StorageData;
-      if (Array.isArray(parsed.entries)) {
-        return parsed;
-      }
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return {};
+
+    const parsed = JSON.parse(raw) as Record<string, JournalEntry>;
+    if (parsed && typeof parsed === 'object') {
+      return parsed;
     }
-  } catch (error) {
-    console.error('Error loading data:', error);
+  } catch {
+    return {};
   }
 
-  return { entries: [] };
+  return {};
 }
 
-export function saveData(data: StorageData): void {
-  if (typeof window === 'undefined') return;
+export function saveEntry(date: string, items: [string, string, string]): Record<string, JournalEntry> {
+  const all = loadEntries();
+  const trimmed: [string, string, string] = [items[0].trim(), items[1].trim(), items[2].trim()];
 
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch (error) {
-    console.error('Error saving data:', error);
-  }
-}
-
-export function getTodayEntry(entries: GratitudeEntry[]): GratitudeEntry | undefined {
-  const today = getLocalDateKey();
-  return entries.find((entry) => entry.date === today);
-}
-
-export function calculateStreak(entries: GratitudeEntry[]): number {
-  const datedEntries = new Set(entries.filter(hasContent).map((entry) => entry.date));
-  if (datedEntries.size === 0) return 0;
-
-  let streak = 0;
-  const cursor = new Date();
-
-  while (datedEntries.has(getLocalDateKey(cursor))) {
-    streak += 1;
-    cursor.setDate(cursor.getDate() - 1);
-  }
-
-  // If there is no entry for today, start counting from yesterday.
-  if (streak === 0) {
-    cursor.setDate(cursor.getDate() - 1);
-    while (datedEntries.has(getLocalDateKey(cursor))) {
-      streak += 1;
-      cursor.setDate(cursor.getDate() - 1);
-    }
-  }
-
-  return streak;
-}
-
-export function createEntry(data: Partial<GratitudeEntry>): GratitudeEntry {
-  const now = Date.now();
-  const today = getLocalDateKey();
-
-  return {
-    id: data.id || `entry-${now}`,
-    date: data.date || today,
-    gratitude1: data.gratitude1 || '',
-    gratitude2: data.gratitude2 || '',
-    gratitude3: data.gratitude3 || '',
-    intention: data.intention || '',
-    affirmation: data.affirmation || '',
-    createdAt: data.createdAt || now,
-    updatedAt: now,
+  all[date] = {
+    date,
+    items: trimmed,
+    updatedAt: Date.now(),
   };
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+  return all;
+}
+
+export function getEntryByDate(all: Record<string, JournalEntry>, date: string): JournalEntry | undefined {
+  return all[date];
+}
+
+export function listEntries(all: Record<string, JournalEntry>): JournalEntry[] {
+  return Object.values(all).sort((a, b) => b.date.localeCompare(a.date));
 }
