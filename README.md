@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Daily Gratitude Journal 🙏
+
+A beautiful, minimalist gratitude journaling app built with Next.js 15, TypeScript, and Tailwind CSS.
+
+## Features
+
+✨ **Daily Prompts**
+- Three gratitude prompts ("I am grateful for...")
+- Daily intention ("What would make today great?")
+- Personal affirmation
+
+🔥 **Streak Tracking**
+- Tracks consecutive days of journaling
+- Visual streak counter with flame emoji
+- Encourages daily practice
+
+📅 **History View**
+- Browse all past entries
+- Expandable cards for full entry viewing
+- Chronologically organized
+
+💜 **Beautiful Design**
+- Soft purple/lavender gradient background
+- Clean white cards with rounded corners
+- Smooth animations and transitions
+- Emoji accents throughout
+- Mobile-responsive layout
+
+💾 **Local Storage**
+- All data persists in browser localStorage
+- No backend or database required
+- Completely private and offline-capable
+
+## Tech Stack
+
+- **Next.js 15** with App Router
+- **TypeScript** for type safety
+- **Tailwind CSS** for styling
+- **localStorage** for data persistence
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+# Install dependencies
+npm install
+
+# Run development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the app.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Usage
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **Today Tab**: Fill out your daily gratitude, intention, and affirmation
+2. **Save**: Click the save button to persist your entry
+3. **History Tab**: Browse and reflect on past entries
+4. **Streak**: Keep your streak alive by journaling daily!
 
-## Learn More
+## Design Philosophy
 
-To learn more about Next.js, take a look at the following resources:
+This app follows the principles of successful gratitude journal apps like Five Minute Journal:
+- Singular focus per screen
+- Minimalist aesthetic
+- Smooth micro-interactions
+- Support for positive habit formation
+- Emotionally warm design with friendly typography
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Screenshots
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+*Coming soon*
 
-## Deploy on Vercel
+## License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+MIT
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+Built with 💜 by [Branson Pfiester](https://github.com/bransonpfiester)
